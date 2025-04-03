@@ -1,2 +1,2 @@
 # Gromacs
-Gromacs MD simulation Tutorial and Analysis scripts
+Gromacs all-atom MD simulation Tutorial and Analysis scripts
