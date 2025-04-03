@@ -1,0 +1,10 @@
+
+############################################################
+CLUSTERING ANANLYSIS GROMACS
+############################################################
+
+RMSD based Clustering
+
+gmx cluster -f md.xtc -s md.tpr -method gromos -cutoff 0.15 -b 50000 -g -cl (-e -dt 10  -n index.ndx)
+
+

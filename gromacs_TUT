@@ -1,0 +1,62 @@
+************************************************************
+GROMACS PROTEIN SIMULATION
+************************************************************
+
+
+###########################################################
+TOPOLOGY GENERATION
+###########################################################
+##Choose forcefield and water in this step
+
+gmx pdb2gmx -f protein.pdb -o prt_processed.gro
+
+
+###################################################################
+SOLVATION 
+###################################################################
+
+gmx editconf -f prt_processed.gro -o newbox.gro -c -d 1.0 -bt cubic
+
+gmx solvate -cp newbox.gro -cs spc216.gro -o solv.gro -p topol.top
+
+####################################################################
+ADDING IONS/NEUTRALIZATION
+####################################################################
+
+gmx grompp -f ions.mdp -c solv.gro -p topol.top -o ions.tpr
+
+gmx genion -s ions.tpr -o solv_ions.gro -p topol.top -pname NA -nname CL -neutral
+
+#############################################################################
+ENERGY MINIMIZATION
+#############################################################################
+
+gmx grompp -f minim.mdp -c solv_ions.gro -p topol.top -o em.tpr
+
+gmx mdrun -v -deffnm em
+
+##############################################################################
+EQUILIBRATION (NVT AND NPT)
+##############################################################################
+
+gmx grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr
+gmx mdrun -deffnm nvt
+
+gmx grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p topol.top -o npt.tpr
+gmx mdrun -deffnm npt
+
+###############################################################################
+PRODUCTION MD
+###############################################################################
+
+gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_0_1.tpr
+gmx mdrun -deffnm md_0_1
+
+############################################################################
+ANALYSIS
+############################################################################
+
+gmx trjconv -s md_0_1.tpr -f md_0_1.xtc -o md_0_1_noPBC.xtc -pbc mol -center
+
+##RMSD
+gmx rms -s md_0_1.tpr -f md_0_1_noPBC.xtc -o rmsd.xvg -tu ns

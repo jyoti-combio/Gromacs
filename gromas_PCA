@@ -1,0 +1,50 @@
+
+
+###################################################################
+ESSENTIAL DYNAMIC ANALYSIS (PCA)
+###################################################################
+
+
+************************************************************************
+COVARIANCE MATRIX FROM TRAJECTROY 
+************************************************************************
+
+gmx covar –f traj.xtc –s reference.gro –b start –e end –ascii
+
+*************************************************************************
+CALCULATE EIGEN VECTORS AND VALUES
+*************************************************************************
+
+#### project PCA1 and PCA2
+gmx anaeig -f trajectory.xtc -v eigenvec.trr -eig eigenval.xvg -s reference.gro -proj proj.xvg -first 1 -last 2 -2d 2d_proj.xvg 
+
+####filter trajectro corresponding to eigenvector
+gmx anaeig -f trajectory.xtc -v eigenvec.trr -eig eigenval.xvg -s reference.gro -filt filter1.pdb -first 1 -last 1 -skip 100
+
+#### interpolate between the extreme conformations sampled during the simulation along this eigenvector
+
+g_anaeig -f trajectory.xtc -v eigenvec.trr -eig eigenval.xvg -s reference.gro -extr extreme.pdb -first 1 -last 1 -nframes 50
+
+
+##########################################################################
+FREE ENERGY LANDSCAPE
+##########################################################################
+
+***************************************************************************
+sham module to generate free energy profile from PC1 and PCA2
+***************************************************************************
+
+gmx sham -f 2d_proj.xvg -ls gibbs.xpm -notime
+
+gmx xpm2ps -f gibbs.xpm  -o gibbs.eps -rainbow red
+
+python xpm2txt.py -f gibbs.xpm -o gibbs.txt 
+
+
+
+
+
+####################################INTERPRETATION#############
+2d projection 
+
+##In this graph, each point represents a snapshot from the simulation, and the distribution shows the sampled region along the first two eigenvectors during the simulation. 
